@@ -15,9 +15,13 @@ public class Main extends JFrame {
     DefaultTableModel model;
 
     public Main() {
+        // set title on top of the window
         setTitle("Student Management System");
+        // set size of the window
         setSize(1000, 600);
+        // set default close operation
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+        // set layout to border layout function
         setLayout(new BorderLayout());
 
         JPanel panelTop = new JPanel(new GridLayout(2, 6, 5, 5));
@@ -64,8 +68,7 @@ public class Main extends JFrame {
         panelTop.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBorder(BorderFactory.createTitledBorder("Student List"));
-        tablePanel.setBorder(BorderFactory.createEmptyBorder(10, 30, 10, 30)); // Margin atas, kiri, bawah, kanan
+        tablePanel.setBorder(BorderFactory.createEmptyBorder(10, 30, 10, 30));
         tablePanel.add(new JScrollPane(table), BorderLayout.CENTER);
         add(tablePanel, BorderLayout.CENTER);
 
