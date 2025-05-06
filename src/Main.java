@@ -5,13 +5,20 @@ import java.sql.*;
 
 public class Main extends JFrame {
     //database connection details
+    // menginisialisasi variabel koneksi database
     static final String DB_URL = "jdbc:mysql://localhost:3306/studentms";
+    // menginisialisasi variabel username database
     static final String DB_USER = "root";
+    // menginisialisasi variabel password database
     static final String DB_PASS = "";
 
+    // menginisialisasi variabel untuk menampilkan judul
     JLabel title;
+    // menginisialisasi variabel untuk menampilkan inputan user
     JTextField txtId, txtName, txtGpa, txtSubject, txtEnrollmentDate, txtSearch;
+    // menginisialisasi variabel untuk menampilkan tabel
     JTable table;
+    // menginisialisasi variabel untuk menampilkan model tabel
     DefaultTableModel model;
 
     public Main() {
@@ -24,13 +31,19 @@ public class Main extends JFrame {
         // set layout to border layout function
         setLayout(new BorderLayout());
 
+        // set location of the window to center of the screen
         JPanel panelTop = new JPanel(new GridLayout(2, 6, 5, 5));
 
+        // set title of the window
         title = new JLabel("Student Management System", SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 24));
+        // set font
+        title.setFont(new Font("Poppins", Font.BOLD, 24));
+        // set foreground jadi hitam
         title.setForeground(Color.black);
+        // margin
         title.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
 
+        
         txtId = new JTextField();
         txtName = new JTextField();
         txtGpa = new JTextField();
