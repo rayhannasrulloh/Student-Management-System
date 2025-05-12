@@ -5,7 +5,6 @@ import java.sql.*;
 
 public class Main extends JFrame {
     //database connection details
-    // menginisialisasi variabel koneksi database
     static final String DB_URL = "jdbc:mysql://localhost:3306/studentms";
     // menginisialisasi variabel username database
     static final String DB_USER = "root";
@@ -75,7 +74,7 @@ public class Main extends JFrame {
 
         add(title, BorderLayout.NORTH);
         add(panelTop, BorderLayout.CENTER);
-        add(panelTop, BorderLayout.SOUTH);
+        add(panelTop, BorderLayout.NORTH);
 
         panelTop.setBackground(Color.LIGHT_GRAY);
         panelTop.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
