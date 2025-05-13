@@ -1,5 +1,5 @@
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
@@ -13,12 +13,14 @@ public class StudentManagementSystem {
 class MainMenu extends JFrame {
     public MainMenu() {
         setTitle("Student Management System");
-        setSize(300, 200);
+        setSize(400, 300);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
         JButton addButton = new JButton("Add Student");
         JButton searchButton = new JButton("Search Student");
+        addButton.setFont(new Font("Arial", Font.BOLD, 20));
+        searchButton.setFont(new Font("Arial", Font.BOLD, 20));
 
         addButton.addActionListener(e -> new AddStudentWindow());
         searchButton.addActionListener(e -> new SearchStudentWindow());
@@ -36,7 +38,7 @@ class AddStudentWindow extends JFrame {
 
     public AddStudentWindow() {
         setTitle("Add Student");
-        setSize(300, 300);
+        setSize(400, 200);
         setLayout(new GridLayout(6, 2));
         setLocationRelativeTo(null);
 
@@ -46,13 +48,13 @@ class AddStudentWindow extends JFrame {
         subjectField = new JTextField();
         dateField = new JTextField();
 
-        JButton saveButton = new JButton("Save");
+        JButton saveButton = new JButton("Add");
         saveButton.addActionListener(e -> saveStudent());
 
         add(new JLabel("Student ID:")); add(idField);
         add(new JLabel("Name:")); add(nameField);
-        add(new JLabel("GPA:")); add(gpaField);
-        add(new JLabel("Subject:")); add(subjectField);
+        add(new JLabel("GPA (0.00 - 4.00):")); add(gpaField);
+        add(new JLabel("Subjects Enrolled (number):")); add(subjectField);
         add(new JLabel("Enrollment Date (YYYY-MM-DD):")); add(dateField);
         add(saveButton);
 
@@ -61,15 +63,47 @@ class AddStudentWindow extends JFrame {
 
     private void saveStudent() {
         try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/studentms", "root", "")) {
+            // validasi input
+            if (idField.getText().isEmpty() || nameField.getText().isEmpty() ||
+                gpaField.getText().isEmpty() || subjectField.getText().isEmpty() || dateField.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please fill in all fields.");
+                return;
+            }
+
+            int id = Integer.parseInt(idField.getText());
+            double gpa = Double.parseDouble(gpaField.getText());
+            int subjectCount = Integer.parseInt(subjectField.getText());
+            if (gpa < 0.0 || gpa > 4.0) {
+                JOptionPane.showMessageDialog(this, "GPA must be between 0.00 and 4.00.");
+                return;
+            }
+
+            // validasi format tanggal
+            if (!dateField.getText().matches("\\d{4}-\\d{2}-\\d{2}")) {
+                JOptionPane.showMessageDialog(this, "Date must be in format YYYY-MM-DD.");
+                return;
+            }
+
+            // cek ID double
+            PreparedStatement check = con.prepareStatement("SELECT * FROM student WHERE student_id = ?");
+            check.setInt(1, id);
+            ResultSet rs = check.executeQuery();
+            if (rs.next()) {
+                JOptionPane.showMessageDialog(this, "Student ID already exists.");
+                return;
+            }
+
             String sql = "INSERT INTO student VALUES (?, ?, ?, ?, ?)";
             PreparedStatement ps = con.prepareStatement(sql);
-            ps.setInt(1, Integer.parseInt(idField.getText()));
+            ps.setInt(1, id);
             ps.setString(2, nameField.getText());
-            ps.setDouble(3, Double.parseDouble(gpaField.getText()));
-            ps.setString(4, subjectField.getText());
+            ps.setDouble(3, gpa);
+            ps.setInt(4, subjectCount);
             ps.setDate(5, Date.valueOf(dateField.getText()));
             ps.executeUpdate();
             JOptionPane.showMessageDialog(this, "Student added successfully!");
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Invalid number format for ID, GPA or Subjects.");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
         }
@@ -81,19 +115,21 @@ class SearchStudentWindow extends JFrame {
     JComboBox<String> fieldSelector;
     JTable table;
     DefaultTableModel model;
+    TableRowSorter<DefaultTableModel> sorter;
     JButton deleteButton;
     int selectedStudentId = -1;
 
     public SearchStudentWindow() {
         setTitle("Search Student");
-        setSize(800, 400);
+        setSize(900, 450);
         setLayout(new BorderLayout());
         setLocationRelativeTo(null);
 
         JPanel topPanel = new JPanel();
-        searchField = new JTextField(20);
+        searchField = new JTextField(15);
         String[] fields = {"All", "student_id", "name", "gpa", "subject", "enrollment_date"};
         fieldSelector = new JComboBox<>(fields);
+
         JButton searchButton = new JButton("Search");
         deleteButton = new JButton("Delete");
         deleteButton.setVisible(false);
@@ -104,9 +140,11 @@ class SearchStudentWindow extends JFrame {
         topPanel.add(searchButton);
         topPanel.add(deleteButton);
 
-        model = new DefaultTableModel(new String[]{"ID", "Name", "GPA", "Subject", "Enrollment Date"}, 0);
+        model = new DefaultTableModel(new String[]{"ID", "Name", "GPA", "Subjects", "Enrollment Date"}, 0);
         table = new JTable(model);
         table.setVisible(false);
+        sorter = new TableRowSorter<>(model);
+        table.setRowSorter(sorter);
 
         searchButton.addActionListener(e -> searchStudents());
         deleteButton.addActionListener(e -> deleteSelectedStudent());
@@ -115,7 +153,7 @@ class SearchStudentWindow extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 int row = table.getSelectedRow();
                 if (row != -1) {
-                    selectedStudentId = Integer.parseInt(model.getValueAt(row, 0).toString());
+                    selectedStudentId = Integer.parseInt(model.getValueAt(table.convertRowIndexToModel(row), 0).toString());
                 }
             }
         });
@@ -152,7 +190,7 @@ class SearchStudentWindow extends JFrame {
                     rs.getInt("student_id"),
                     rs.getString("name"),
                     rs.getDouble("gpa"),
-                    rs.getString("subject"),
+                    rs.getInt("subject"),
                     rs.getDate("enrollment_date")
                 });
             }
